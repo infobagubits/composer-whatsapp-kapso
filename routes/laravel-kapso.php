@@ -7,7 +7,13 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Route;
+use Integrations\Kapso\Http\Controllers\KapsoWebhookController;
 use Integrations\Kapso\Kapso;
+
+// WEBHOOK END-POINT
+
+Route::post('/kapso/webhook', KapsoWebhookController::class)
+    ->name('kapso.webhook');
 
 /*
 |--------------------------------------------------------------------------

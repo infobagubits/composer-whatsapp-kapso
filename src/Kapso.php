@@ -159,6 +159,42 @@ class Kapso
         return $this->clean(array_merge([$key => $media], $extra));
     }
 
+    /* REGISTER WEBHOOK */
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function registerWebhook(): array
+    {
+        $baseUrl = config('laravel-kapso.kapso.base_url');
+        $phoneId = config('laravel-kapso.kapso.phone_id');
+        $apiKey = config('laravel-kapso.kapso.api_key');
+
+        $response = Http::withHeaders([
+            'X-API-Key' => $apiKey,
+        ])->post(
+            "https://api.kapso.ai/platform/v1/whatsapp/phone_numbers/{$phoneId}/webhooks",
+            [
+                'whatsapp_webhook' => [
+                    'kind' => 'kapso',
+                    'url' => route('kapso.webhook'),
+
+                    'events' => [
+                        'whatsapp.message.received',
+                    ],
+
+                    'secret_key' => config(
+                        'laravel-kapso.webhook.secret',
+                    ),
+                ],
+            ],
+        );
+
+        $response->throw();
+
+        return $response->json();
+    }
+
     /* =======================================================================
      | Messaggi - invio      POST /{phone_number_id}/messages
      ======================================================================= */

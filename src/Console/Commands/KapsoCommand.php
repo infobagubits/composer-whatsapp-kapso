@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Integrations\Kapso\Console\Commands;
 
 use Illuminate\Console\Command;
+use Integrations\Kapso\Kapso;
 
 class KapsoCommand extends Command
 {
     /**
      * The command signature.
      */
-    protected $signature = 'laravel-kapso:placeholder';
+    protected $signature = 'laravel-kapso:webhook-register';
 
     /**
      * The command description.
@@ -21,9 +22,11 @@ class KapsoCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(): int
+    public function handle(Kapso $kapso): int
     {
         $this->line('Kapso placeholder command executed.');
+
+        $response = $kapso->registerWebhook();
 
         return self::SUCCESS;
     }

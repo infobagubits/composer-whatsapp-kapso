@@ -23,7 +23,7 @@ it('registra una route per ogni endpoint', function (): void {
         ->map(fn ($route): string => $route->uri())
         ->filter(fn (string $uri): bool => str_starts_with($uri, 'kapso/'));
 
-    expect($uris)->toHaveCount(76);
+    expect($uris)->toHaveCount(77);
 });
 
 it('mantiene la route storica di invio testo', function (): void {

@@ -5,3 +5,10 @@ parameters:
         - config
         - routes
     tmpDir: build/phpstan
+    ignoreErrors:
+        # larastan confronta con la cartella config/ dell'applicazione, che in
+        # un pacchetto non esiste: env() nel config del pacchetto e' corretto
+        # ed e' l'unico modo per lasciare configurabile chi lo installa.
+        -
+            identifier: larastan.noEnvCallsOutsideOfConfig
+            path: config/*

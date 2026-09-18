@@ -3,11 +3,11 @@
 </div>
 
 <p align="center">
-    <a href="https://packagist.org/packages/infobagubits/laravel-kapso"><img src="https://img.shields.io/packagist/v/infobagubits/laravel-kapso.svg?style=flat-square" alt="Packagist"></a>
-    <a href="https://packagist.org/packages/infobagubits/laravel-kapso"><img src="https://img.shields.io/packagist/php-v/infobagubits/laravel-kapso.svg?style=flat-square" alt="PHP from Packagist"></a>
-    <a href="https://packagist.org/packages/infobagubits/laravel-kapso"><img src="https://badge.laravel.cloud/badge/infobagubits/laravel-kapso?style=flat" alt="Laravel versions"></a>
-    <a href="https://github.com/infobagubits/laravel-kapso/actions"><img alt="GitHub Workflow Status (main)" src="https://img.shields.io/github/actions/workflow/status/infobagubits/laravel-kapso/tests.yml?branch=main&label=Tests&style=flat-square"></a>
-    <a href="https://packagist.org/packages/infobagubits/laravel-kapso"><img src="https://img.shields.io/packagist/dt/infobagubits/laravel-kapso.svg?style=flat-square" alt="Total Downloads"></a>
+    <a href="https://packagist.org/packages/infobagubits/whatsapp-kapso"><img src="https://img.shields.io/packagist/v/infobagubits/whatsapp-kapso.svg?style=flat-square" alt="Packagist"></a>
+    <a href="https://packagist.org/packages/infobagubits/whatsapp-kapso"><img src="https://img.shields.io/packagist/php-v/infobagubits/whatsapp-kapso.svg?style=flat-square" alt="PHP from Packagist"></a>
+    <a href="https://packagist.org/packages/infobagubits/whatsapp-kapso"><img src="https://badge.laravel.cloud/badge/infobagubits/whatsapp-kapso?style=flat" alt="Laravel versions"></a>
+    <a href="https://github.com/infobagubits/whastapp-kapso/actions"><img alt="GitHub Workflow Status (main)" src="https://img.shields.io/github/actions/workflow/status/infobagubits/whatsapp-kapso/tests.yml?branch=main&label=Tests&style=flat-square"></a>
+    <a href="https://packagist.org/packages/infobagubits/whatsapp-kapso"><img src="https://img.shields.io/packagist/dt/infobagubits/whatsapp-kapso.svg?style=flat-square" alt="Total Downloads"></a>
 </p>
 
 Laravel integration for Kapso WhatsApp API
@@ -17,7 +17,7 @@ Laravel integration for Kapso WhatsApp API
 You can install the package via Composer:
 
 ```bash
-composer require infobagubits/laravel-kapso
+composer require infobagubits/whatsapp-kapso
 ```
 
 You may publish all of the package's resources at once:
@@ -224,6 +224,61 @@ POST    kapso/flows/{flowId}/publish
 ```
 
 Run `php artisan route:list --path=kapso` for the full list.
+
+## Webhooks
+
+Point your Kapso webhook at `POST /kapso/webhook` and set the handler class in
+the config. The handler receives the event name and one payload at a time —
+batched deliveries are unwrapped for you.
+
+```php
+// config/laravel-kapso.php
+'webhook' => [
+    'handler' => App\Webhooks\KapsoHandler::class,
+    'secret' => env('KAPSO_WEBHOOK_SECRET'),
+],
+```
+
+```php
+class KapsoHandler
+{
+    public function handle(?string $event, array $payload): void
+    {
+        // ...
+    }
+}
+```
+
+### Idempotency
+
+Kapso retries a delivery at 10 and 40 seconds when it does not get a `200`, so
+the same event can reach you more than once. Each payload is deduplicated
+individually, which means the retry of a partially processed batch replays only
+the events that did not get through the first time.
+
+`X-Idempotency-Key` is used when present — Meta webhooks send it, Kapso ones do
+not — otherwise the key is derived from the payload's `id`, `message_id`,
+`wamid` or `event_id`, falling back to a hash of the payload.
+
+```dotenv
+KAPSO_WEBHOOK_IDEMPOTENCY=true
+KAPSO_WEBHOOK_CACHE_STORE=redis      # empty: default store
+KAPSO_WEBHOOK_IDEMPOTENCY_TTL=3600
+```
+
+### Queue
+
+Your endpoint has to answer within 10 seconds. Handlers therefore run in a
+queued job by default, and the request returns as soon as the signature is
+verified and the events are deduplicated.
+
+```dotenv
+KAPSO_WEBHOOK_QUEUE=true
+KAPSO_WEBHOOK_QUEUE_CONNECTION=redis
+KAPSO_WEBHOOK_QUEUE_NAME=webhooks
+```
+
+Set `KAPSO_WEBHOOK_QUEUE=false` to run handlers inside the request instead.
 
 ## Changelog
 
